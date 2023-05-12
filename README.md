@@ -81,17 +81,19 @@ There are two main things you should keep in mind with this project currently:
 
 - No Curseforge support
 
-  - Packwiz does not keep the download URL to mods from Curseforge in it's TOML files,
-    which is not acceptable in the current method used to generate checksums and create
-    the final derivations for mods. This may be changed in the future
+  - Packwiz does not keep the download URL for Curseforge mods in it's TOML files
+    due to Curseforge's ToS, which is not acceptable in the current method used to 
+    generate checksums and create the final derivations for mods.
 
   - This is the biggest concern as it affects end users the most
 
 - Checksums must be generated (**modpack developers, make sure you read this**)
-  - Packwiz uses SHA1 to verify mod files, which fetchers in nix such as `builtins.fetchurl`
+  - Packwiz uses SHA1 by default to verify mod files, which fetchers in nix such as `builtins.fetchurl`
     and `pkgs.fetchurl` do not support. This prevents us from using them, and requires a separate
-    checksum file (using SHA256) to be generated and updated along with the modpack. I don't see
-    how this can be resolved in the foreseeable future unless SHA256 is adopted by Packwiz.
+    checksum file (using SHA256) to be generated and updated along with the modpack.
+    
+  - There are [plans](https://github.com/packwiz/packwiz/issues/156) to change this in the future,
+    which would allow for this process to be removed
 
 ## Related Projects
 
