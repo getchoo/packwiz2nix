@@ -75,6 +75,40 @@ packwiz2nix is quick to set up, all you have to do is add this to the `apps` att
 
 An example of this can be found in my [personal modpack](https://github.com/getchoo/modpack/blob/main/flake.nix)
 
+## Maintainer Guide
+
+packwiz2nix also offers some more advanced features if maintainers wish to integrate
+this project further into their distribution.
+
+### Create traditional modpacks
+
+One of these features is the ability to create traditional modpacks anyone can use. So far,
+only modpacks for MultiMC and Prism Launcher are supported.
+
+#### MultiMC/Prism Launcher
+
+`mkMultiMCPack` allows you to create a package attribute that will result in a zipfile any user of
+Prism Launcher and MultiMC can import. For example:
+
+```nix
+{
+  packages = let
+    inherit (packwiz2nix.lib) mkMultiMCPack mkPackwizPackages;
+    mods = mkPackwizPackages pkgs ./checksums.json;
+  in rec {
+    myModpack = mkMultiMCPack {
+      inherit pkgs mods;
+      # optionally include external
+      # files in modpack
+      filesDir = ./files;
+      name = "myModpack";
+    };
+
+    default = myModpack;
+  };
+}
+```
+
 ## Gotchas!
 
 There are two main things you should keep in mind with this project currently:
