@@ -2,6 +2,7 @@ let
   inherit
     (builtins)
     attrNames
+    concatStringsSep
     hashFile
     fetchurl
     fromJSON
@@ -71,8 +72,6 @@ let
         mods);
   in
     toFile "checksums-json" toWrite;
-in {
-  inherit mkChecksums;
 
   # this is probably what you're looking for if
   # you're an end user trying to implement a modpack in
@@ -86,6 +85,62 @@ in {
   #
   # attrset -> path -> attrset
   mkPackwizPackages = pkgs: checksums: genMods pkgs (fromJSON (readFile checksums));
+in {
+  inherit mkChecksums mkPackwizPackages;
+
+  # this another function modpack developers will be looking
+  # for. it allows you to build a modpack compatible with MultiMC
+  # and Prism Launcher, containing external files.
+  #
+  # `pkgs` is an instance of nixpkgs with at least lib, runCommand,
+  # and zip
+  #
+  # `mods` is the result of mkPackwizPackages
+  #
+  # `filesDir` is the root path of all external files you want
+  # included in your zipped modpack
+  #
+  # `name` is a string containing the name of your modpack
+  mkMultiMCPack = {
+    pkgs,
+    mods,
+    filesDir ? "",
+    name,
+  }: let
+    inherit (pkgs) fetchurl lib runCommand zip;
+    inherit (lib) forEach;
+
+    packwiz-installer-bootstrap = fetchurl {
+      url = "https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar";
+      sha256 = "sha256-qPuyTcYEJ46X9GiOgtPZGjGLmO/AjV2/y8vKtkQ9EWw=";
+    };
+
+    forNames = attrset: forEach (attrNames attrset);
+    commandSep = concatStringsSep "; ";
+    modFiles = let
+      commands = forNames mods (mod: "cp -r ${mods.${mod}} $out/decompressed/.minecraft/mods/");
+    in
+      commandSep commands;
+
+    regularFiles =
+      if filesDir != ""
+      then
+        (let
+          files = readDir filesDir;
+          commands = forNames files (file: "cp -r ${filesDir}/${file} $out/decompressed/");
+        in
+          commandSep commands)
+      else "echo 'not copying external files...'";
+  in
+    runCommand name {} ''
+      mkdir -p $out/decompressed/.minecraft/mods
+      ${regularFiles}
+      ${modFiles}
+      cp ${packwiz-installer-bootstrap} $out/decompressed/.minecraft/packwiz-installer-bootstrap.jar
+
+      cd $out/decompressed
+      ${zip}/bin/zip -r ../${name}.zip {*,.*}
+    '';
 
   # this creates an `apps` attribute for a flake
   # which runs a bash script to generate a checksums
