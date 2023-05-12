@@ -8,7 +8,7 @@ your already existing packwiz modpack!
 
 ### For users
 
-It is recommended to use [misterio77's](https://github.com/Misterio77) [nix-minecraft](https://github.com/misterio77/nix-minecraft)
+It is recommended to use [Infinidoge's](https://github.com/Infinidoge) [nix-minecraft](https://github.com/Infinidoge/nix-minecraft)
 module as it allows you to symlink packages into a minecraft server's directory.
 
 There is a convenience function called `mkModLinks` that can automate the creation of symlinks for a server like so:
@@ -95,5 +95,5 @@ There are two main things you should keep in mind with this project currently:
 
 ## Related Projects
 
-- [misterio77/nix-minecraft](https://github.com/misterio77/nix-minecraft)
+- [Infinidoge/nix-minecraft](https://github.com/Infinidoge/nix-minecraft)
 - [nix-community/mineflake](https://github.com/nix-community/mineflake)
