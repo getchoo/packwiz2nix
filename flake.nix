@@ -27,6 +27,7 @@
       inherit
         (lib')
         fetchPackwizModpack
+        mkMultiMCPack
         ;
     });
 
