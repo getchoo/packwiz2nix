@@ -14,7 +14,7 @@ let
     toFile
     toJSON
     ;
-
+  
   # loads data from a toml json given
   # the directory (dir) and filename (name)
   # string -> string -> attrset
@@ -23,7 +23,7 @@ let
   # replaces `.pw.toml` extensions with `.jar`
   # to correct the store paths of jarfiles
   # string -> string
-  fixupName = replaceStrings [".pw.toml"] [".jar"];
+  withJarExtension = name: replaceStrings [".pw.toml"] [".jar"] name;
 
   # *pkgs*.fetchurl wrapper that downloads a
   # jarfile mod. pkgs.fetchurl is used over builtins
@@ -32,7 +32,7 @@ let
   # attrset -> string -> attrset -> store path
   mkMod = pkgs: name: mod:
     pkgs.fetchurl {
-      name = fixupName name;
+      name = pkgs.lib.strings.sanitizeDerivationName (withJarExtension name);
       inherit (mod) url sha256;
     };
 
@@ -52,12 +52,12 @@ let
   # files for mods. make sure they are the only files in the folder
   #
   # path -> file
-  mkChecksums = dir: let
+  mkChecksums = pkgs: dir: let
     mods = readDir dir;
 
     getChecksum = name: url:
       hashFile "sha256" (fetchurl {
-        name = fixupName name;
+        name = pkgs.lib.strings.sanitizeDerivationName (withJarExtension name);
         inherit url;
       });
 
@@ -155,7 +155,7 @@ in {
   # attrset -> path -> attrset
   mkChecksumsApp = pkgs: dir: let
     inherit (pkgs) writeShellScriptBin;
-    checksums = mkChecksums dir;
+    checksums = mkChecksums pkgs dir;
     name = "generate-checksums";
     script = writeShellScriptBin name ''
       cat ${checksums} > checksums.json
@@ -170,7 +170,7 @@ in {
   # attrset -> attrset
   mkModLinks = mods: let
     fixup = map (name: {
-      name = "mods/" + fixupName name;
+      name = "mods/" + withJarExtension name;
       value = mods.${name};
     }) (attrNames mods);
   in
